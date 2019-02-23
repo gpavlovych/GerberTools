@@ -250,47 +250,49 @@ namespace GerberLibrary
 
                     switch (Path.GetFileNameWithoutExtension(gerberfile).ToLower())
                     {
+                        case "profile":
                         case "boardoutline":
-                            Side = BoardSide.Both;
-                            Layer = BoardLayer.Outline;
-                            break;
                         case "outline":
-                            Side = BoardSide.Both;
-                            Layer = BoardLayer.Outline;
-                            break;
-
                         case "board":
                             Side = BoardSide.Both;
                             Layer = BoardLayer.Outline;
                             break;
+                        case "copper_bottom":
                         case "bottom":
                             Side = BoardSide.Bottom;
                             Layer = BoardLayer.Copper;
                             break;
+                        case "soldermask_bottom":
                         case "bottommask":
                             Side = BoardSide.Bottom;
                             Layer = BoardLayer.SolderMask;
                             break;
+                        case "solderpaste_bottom":
                         case "bottompaste":
                             Side = BoardSide.Bottom;
                             Layer = BoardLayer.Paste;
                             break;
+                        case "silkscreen_bottom":
                         case "bottomsilk":
                             Side = BoardSide.Bottom;
                             Layer = BoardLayer.Silk;
                             break;
+                        case "copper_top":
                         case "top":
                             Side = BoardSide.Top;
                             Layer = BoardLayer.Copper;
                             break;
+                        case "soldermask_top":
                         case "topmask":
                             Side = BoardSide.Top;
                             Layer = BoardLayer.SolderMask;
                             break;
+                        case "solderpaste_top":
                         case "toppaste":
                             Side = BoardSide.Top;
                             Layer = BoardLayer.Paste;
                             break;
+                        case "silkscreen_top":
                         case "topsilk":
                             Side = BoardSide.Top;
                             Layer = BoardLayer.Silk;

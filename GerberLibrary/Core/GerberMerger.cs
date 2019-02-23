@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using GerberLibrary.Core.Primitives;
 using GerberLibrary.Core;
@@ -96,6 +97,10 @@ namespace GerberLibrary
             }
             List<ParsedGerber> OtherFiles = new List<ParsedGerber>();
 
+            void SetupGbr(ParsedGerber gbr, string name)
+            {
+                gbr.Name = Regex.Replace(Path.GetFileNameWithoutExtension(name), @"^\d+_", "");
+            }
             int MaxDigitsBefore = 0;
             int MaxDigitsAfter = 0;
             foreach (var otherfile in filestomergein)
@@ -109,6 +114,7 @@ namespace GerberLibrary
                 List<string> OtherLines = File.ReadAllLines(otherfile).ToList();
                 OtherLines = PolyLineSet.SanitizeInputLines(OtherLines);
                 ParsedGerber OtherFileParsed = PolyLineSet.ParseGerber274x(OtherLines, true, false, new GerberParserState() { PreCombinePolygons = false });
+                SetupGbr(OtherFileParsed, otherfile);
                 OtherFiles.Add(OtherFileParsed);
                 OtherFileParsed.OriginalLines = OtherLines;
                 MaxDigitsAfter = Math.Max(OtherFileParsed.State.CoordinateFormat.DigitsAfter, MaxDigitsAfter);
@@ -119,30 +125,39 @@ namespace GerberLibrary
 
             File1Lines = PolyLineSet.SanitizeInputLines(File1Lines);
             ParsedGerber File1Parsed = PolyLineSet.ParseGerber274x(File1Lines, true, false, new GerberParserState() { PreCombinePolygons = false });
-
-                        
-                   
-            
-            List<string> OutputLines = new List<string>();
+            SetupGbr(File1Parsed, file1);
+            Dictionary<string, List<string>> OutputLines = new Dictionary<string, List<string>>();
             GerberNumberFormat GNF = new GerberNumberFormat();
             GNF.DigitsBefore = Math.Max(File1Parsed.State.CoordinateFormat.DigitsBefore, MaxDigitsBefore);
             GNF.DigitsAfter = Math.Max(File1Parsed.State.CoordinateFormat.DigitsAfter, MaxDigitsAfter);
 
             GNF.SetImperialMode();
 
-            //OutputLines.Add(String.Format("G04 merged from {0} and {1}", Path.GetFileNameWithoutExtension(file1), Path.GetFileNameWithoutExtension(file2)));
-            OutputLines.Add(GNF.BuildMetricImperialFormatLine());
-            OutputLines.Add("%OFA0B0*%");
-            OutputLines.Add(GNF.BuildGerberFormatLine());
-            OutputLines.Add("%IPPOS*%");
-            OutputLines.Add("%LPD*%");
+            List<string> GetOutputLine(ParsedGerber file)
+            {
+                var key = file.Name ?? file.Side + "_" + file.Layer;
+                if (OutputLines.ContainsKey(key))
+                {
+                    return OutputLines[key];
+                }
+
+                var outputLine = new List<string>();
+                OutputLines.Add(key, outputLine);
+                //OutputLines.Add(String.Format("G04 merged from {0} and {1}", Path.GetFileNameWithoutExtension(file1), Path.GetFileNameWithoutExtension(file2)));
+                outputLine.Add(GNF.BuildMetricImperialFormatLine());
+                outputLine.Add("%OFA0B0*%");
+                outputLine.Add(GNF.BuildGerberFormatLine());
+                outputLine.Add("%IPPOS*%");
+                outputLine.Add("%LPD*%");
+                return outputLine;
+            }
 
             Dictionary<string, string> MacroDict = new Dictionary<string, string>();
 
 
             foreach (var a in File1Parsed.State.ApertureMacros)
             {
-                OutputLines.Add(a.Value.BuildGerber(GNF, 0).Trim());
+                GetOutputLine(File1Parsed).Add(a.Value.BuildGerber(GNF, 0).Trim());
                 MacroDict[a.Value.Name + "____"] = a.Value.Name;
             }
             foreach (var fileparsed in OtherFiles)
@@ -158,7 +173,7 @@ namespace GerberLibrary
                     }
                     MacroDict[a.Value.Name] = name;
                     a.Value.Name = name;
-                    OutputLines.Add(a.Value.BuildGerber(GNF, 0).Trim());
+                    GetOutputLine(fileparsed).Add(a.Value.BuildGerber(GNF, 0).Trim());
                 }
             }
 
@@ -166,7 +181,7 @@ namespace GerberLibrary
 
             foreach (var a in File1Parsed.State.Apertures)
             {
-                OutputLines.Add(a.Value.BuildGerber(GNF));
+                GetOutputLine(File1Parsed).Add(a.Value.BuildGerber(GNF));
             }
             
             int ApertureOffset = 0;
@@ -185,7 +200,7 @@ namespace GerberLibrary
                         a.Value.MacroName = MacroDict[a.Value.MacroName];
                     }
                     a.Value.ID = LastID++;
-                    OutputLines.Add(a.Value.BuildGerber(GNF));
+                    GetOutputLine(fileparsed).Add(a.Value.BuildGerber(GNF));
                 }
             }
             // stuff goes here.
@@ -210,11 +225,11 @@ namespace GerberLibrary
                                 switch (FinalLine)
                                 {
                                     case "LPD":
-                                        if (CurrentPolarity != "LPD") { OutputLines.Add("%LPD*%"); CurrentPolarity = "LPD"; }
+                                        if (CurrentPolarity != "LPD") { GetOutputLine(File1Parsed).Add("%LPD*%"); CurrentPolarity = "LPD"; }
 
                                         break;
                                     case "LPC":
-                                        if (CurrentPolarity != "LPC") { OutputLines.Add("%LPC*%"); CurrentPolarity = "LPC"; }
+                                        if (CurrentPolarity != "LPC") { GetOutputLine(File1Parsed).Add("%LPC*%"); CurrentPolarity = "LPC"; }
                                         break;
                                     default:
                                         if (CurrentLine.Length > 1 && CurrentLine[CurrentLine.Length - 1] != '%')
@@ -238,7 +253,7 @@ namespace GerberLibrary
                                     if (GS.Has("D") && GS.Get("D") > 3)
                                     {
 
-                                        OutputLines.Add(CurrentLine);
+                                        GetOutputLine(File1Parsed).Add(CurrentLine);
                                     }
                                 }
                                 else
@@ -250,7 +265,7 @@ namespace GerberLibrary
                                     GS.ScaleToFile(GNF);
 
 
-                                    OutputLines.Add(GS.Rebuild(GNF));
+                                    GetOutputLine(File1Parsed).Add(GS.Rebuild(GNF));
                                     //   Log.AddString("Unsupported arc command found!");
                                     //  MessageBox.Show("Unsupported arc type found during merge! File will NOT be exported correctly!", "Error during export", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
@@ -282,7 +297,7 @@ namespace GerberLibrary
                                         }
                                         else
                                         {
-                                            OutputLines.Add(CurrentLine);
+                                            GetOutputLine(File1Parsed).Add(CurrentLine);
                                         }
 
                                         //OutputLines.Add(CurrentLine);
@@ -303,13 +318,13 @@ namespace GerberLibrary
                                 {
                                     if (GS.Get("D") > 3)
                                     {
-                                        OutputLines.Add(CurrentLine);
+                                        GetOutputLine(File1Parsed).Add(CurrentLine);
                                     }
                                     else
                                     {
                                         if (GS.Has("X") == false && GS.Has("Y") == false)
                                         {
-                                            OutputLines.Add(CurrentLine);
+                                            GetOutputLine(File1Parsed).Add(CurrentLine);
                                         }
                                         else
                                         {
@@ -364,7 +379,7 @@ namespace GerberLibrary
                                                 OutLine += String.Format("D{0}", ((int)GS.Get("D")).ToString("D2"));
                                             }
                                             OutLine += "*";
-                                            OutputLines.Add(OutLine);
+                                            GetOutputLine(File1Parsed).Add(OutLine);
                                         }
 
                                     }
@@ -395,8 +410,8 @@ namespace GerberLibrary
                 {
                     Console.WriteLine("File 2 format: {0}", otherfile.State.CoordinateFormat);
                 }
-                OutputLines.Add("G04 next file*");
-                if (CurrentPolarity != "LPD") { OutputLines.Add("%LPD*%"); CurrentPolarity = "LPD"; }
+                GetOutputLine(otherfile).Add("G04 next file*");
+                if (CurrentPolarity != "LPD") { GetOutputLine(otherfile).Add("%LPD*%"); CurrentPolarity = "LPD"; }
 
                 //OutputLines.Add( String.Format("G04 :starting {0}", Path.GetFileNameWithoutExtension(file2)));
                 for (int i = 0; i < otherfile.OriginalLines.Count; i++)
@@ -415,11 +430,11 @@ namespace GerberLibrary
                                     switch (FinalLine)
                                     {
                                         case "LPD":
-                                            if (CurrentPolarity != "LPD") { OutputLines.Add("%LPD*%"); CurrentPolarity = "LPD"; }
+                                            if (CurrentPolarity != "LPD") { GetOutputLine(otherfile).Add("%LPD*%"); CurrentPolarity = "LPD"; }
 
                                             break;
                                         case "LPC":
-                                            if (CurrentPolarity != "LPC") { OutputLines.Add("%LPC*%"); CurrentPolarity = "LPC"; }
+                                            if (CurrentPolarity != "LPC") { GetOutputLine(otherfile).Add("%LPC*%"); CurrentPolarity = "LPC"; }
 
 
                                             break;
@@ -445,7 +460,7 @@ namespace GerberLibrary
                                     {
                                         if (GS.Has("D") && GS.Get("D") > 3)
                                         {
-                                            OutputLines.Add(otherfile.State.Apertures[(int)GS.Get("D")].BuildSelectGerber());
+                                            GetOutputLine(otherfile).Add(otherfile.State.Apertures[(int)GS.Get("D")].BuildSelectGerber());
                                             //OutputLines.Add(CurrentLine);
                                         }
                                     }
@@ -466,7 +481,7 @@ namespace GerberLibrary
                                                     //        if (GS.Has("Y")) GS.Set("Y", File2Parsed.CoordinateFormat.ScaleFileToMM(GS.Get("Y")));
                                                     //       if (GS.Has("I")) GS.Set("I", File2Parsed.CoordinateFormat.ScaleFileToMM(GS.Get("I")));
                                                     //      if (GS.Has("J")) GS.Set("J", File2Parsed.CoordinateFormat.ScaleFileToMM(GS.Get("J")));
-                                                    OutputLines.Add(GS.Rebuild(GNF));
+                                                    GetOutputLine(otherfile).Add(GS.Rebuild(GNF));
                                                     //   Log.AddString("Unsupported arc command found!");
                                                     //  MessageBox.Show("Unsupported arc type found during merge! File will NOT be exported correctly!", "Error during export", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                                 }
@@ -478,17 +493,17 @@ namespace GerberLibrary
                                                 switch ((int)GS.Get("G"))
                                                 {
                                                     case 70:
-                                                        OutputLines.Add("G04 skipping 70");
+                                                        GetOutputLine(otherfile).Add("G04 skipping 70");
                                                         otherfile.State.CoordinateFormat.SetImperialMode();
 
                                                         break;
                                                     case 71:
-                                                        OutputLines.Add("G04 skipping 71");
+                                                        GetOutputLine(otherfile).Add("G04 skipping 71");
                                                         otherfile.State.CoordinateFormat.SetMetricMode();
 
                                                         break;
                                                     default:
-                                                        OutputLines.Add(CurrentLine);
+                                                        GetOutputLine(otherfile).Add(CurrentLine);
                                                         break;
                                                 }
                                                 break;
@@ -508,13 +523,13 @@ namespace GerberLibrary
                                     {
                                         if (GS.Get("D") > 3)
                                         {
-                                            OutputLines.Add(otherfile.State.Apertures[(int)GCC.numbercommands[0]].BuildSelectGerber());
+                                            GetOutputLine(otherfile).Add(otherfile.State.Apertures[(int)GCC.numbercommands[0]].BuildSelectGerber());
                                         }
                                         else
                                         {
                                             if (GS.Has("X") == false && GS.Has("Y") == false)
                                             {
-                                                OutputLines.Add(CurrentLine);
+                                                GetOutputLine(otherfile).Add(CurrentLine);
                                             }
                                             else
                                             {
@@ -569,7 +584,7 @@ namespace GerberLibrary
                                                     OutLine += String.Format("D{0}", ((int)GS.Get("D")).ToString("D2"));
                                                 }
                                                 OutLine += "*";
-                                                OutputLines.Add(OutLine);
+                                                GetOutputLine(otherfile).Add(OutLine);
 
 
                                             }
@@ -599,7 +614,7 @@ namespace GerberLibrary
                                             }
                                             else
                                             {
-                                                OutputLines.Add(CurrentLine);
+                                                GetOutputLine(otherfile).Add(CurrentLine);
                                             }
 
                                         }
@@ -614,9 +629,16 @@ namespace GerberLibrary
                 }
             }
 
-
-            OutputLines.Add(Gerber.EOF);
-            Gerber.WriteAllLines(output, PolyLineSet.SanitizeInputLines(OutputLines));
+            var outputFileNameWithoutExtension = Path.GetFileNameWithoutExtension(output);
+            var outputFileExtension = Path.GetExtension(output);
+            var outputDirectoryName = Path.GetDirectoryName(output);
+            foreach (var outputLines in OutputLines)
+            {
+                outputLines.Value.Add(Gerber.EOF);
+                Gerber.WriteAllLines(
+                    Path.Combine(outputDirectoryName, $"{outputLines.Key}_{outputFileNameWithoutExtension}{outputFileExtension}"),
+                    PolyLineSet.SanitizeInputLines(outputLines.Value));
+            }
         }
 
         private static void CheckAllApertures(ParsedGerber file1Parsed, List<string> File1Lines, ProgressLog Log)
