@@ -59,7 +59,7 @@ namespace GerberLibrary
 
             }
 
-            string[] FileNames = Directory.GetFiles(foldername);
+            string[] FileNames = Directory.GetFiles(foldername, "*.*", SearchOption.AllDirectories);
             List<string> outlinefiles = new List<string>();
             List<string> millfiles = new List<string>();
             List<string> copperfiles = new List<string>();
@@ -2114,7 +2114,7 @@ namespace GerberLibrary
 
                     if (Directory.Exists(a.GerberPath))
                     {
-                        FileList = Directory.GetFiles(a.GerberPath).ToList();
+                        FileList = Directory.GetFiles(a.GerberPath, "*.*", SearchOption.AllDirectories).ToList();
                     }
                     else
                     {

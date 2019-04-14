@@ -74,6 +74,9 @@
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\GerberProjects\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -86,6 +89,9 @@
       <HintPath>..\GerberProjects\packages\Triangle.0.0.6-Beta3\lib\net45\Triangle.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="UnitsNet, Version=4.0.0.0, Culture=neutral, PublicKeyToken=f8601875a1f041da, processorArchitecture=MSIL">
+      <HintPath>..\GerberProjects\packages\UnitsNet.4.18.0\lib\net40\UnitsNet.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AboutBox1.cs">
@@ -93,6 +99,12 @@
     </Compile>
     <Compile Include="AboutBox1.Designer.cs">
       <DependentUpon>AboutBox1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AddGridOfInstances.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AddGridOfInstances.Designer.cs">
+      <DependentUpon>AddGridOfInstances.cs</DependentUpon>
     </Compile>
     <Compile Include="GLGraphicsInterface.cs" />
     <Compile Include="QuickFont\Builder.cs" />
@@ -167,6 +179,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Explanation And Warning.resx">
       <DependentUpon>Explanation And Warning.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AddGridOfInstances.resx">
+      <DependentUpon>AddGridOfInstances.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GerberPanelize.resx">
       <DependentUpon>GerberPanelize.cs</DependentUpon>
