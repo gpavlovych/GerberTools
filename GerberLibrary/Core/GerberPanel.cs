@@ -1579,6 +1579,8 @@ namespace GerberLibrary
 
             Dictionary<string, List<string>> FilesPerExt = new Dictionary<string, List<string>>();
             Dictionary<string, BoardFileType> FileTypePerExt = new Dictionary<string, BoardFileType>();
+            var config = new ExcellonToGCodeConverterConfig(100, 500, 3000, -1.7, 5);
+            var converter = new ExcellonToGCodeConverter(config);
             foreach (var s in GeneratedFiles)
             {
                 string ext = Path.GetExtension(s).ToLower(); ;
@@ -1604,6 +1606,11 @@ namespace GerberLibrary
                             string Filename = Path.Combine(targetfolder, combinedfilename + a.Key);
                             FinalFiles.Add(Filename);
                             ExcellonFile.MergeAll(a.Value, Filename, Logger);
+                            using (var reader = File.OpenText(Filename))
+                            using (var writer = new StreamWriter(Path.Combine(Path.GetDirectoryName(Filename), Path.GetFileNameWithoutExtension(Filename), ".nc")))
+                            {
+                                converter.Convert(reader, writer);
+                            }
                         }
                         break;
                     case BoardFileType.Gerber:

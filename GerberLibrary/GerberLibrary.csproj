@@ -79,6 +79,9 @@
     <Compile Include="Core\ExcellonFile.cs" />
     <Compile Include="Artwork Related\FontSet.cs" />
     <Compile Include="Artwork Related\GallifreyanFont.cs" />
+    <Compile Include="Core\ExcellonToGCodeConverter.cs" />
+    <Compile Include="Core\ExcellonToGCodeConverterConfig.cs" />
+    <Compile Include="Core\FinalAction.cs" />
     <Compile Include="Core\Gerber.cs" />
     <Compile Include="Artwork Related\GerberArtWriter.cs" />
     <Compile Include="Core\GerberMerger.cs" />
