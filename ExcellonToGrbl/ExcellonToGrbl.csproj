@@ -7,7 +7,7 @@
     <ProjectGuid>{37A0DC86-4B49-4E45-8E14-E78271323C01}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>ExcellonToGrbl</RootNamespace>
-    <AssemblyName>ExcellonToGrbl</AssemblyName>
+    <AssemblyName>xln2grbl</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

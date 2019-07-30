@@ -96,6 +96,7 @@
     <Compile Include="Core\MathHelpers.cs" />
     <Compile Include="Core\PackingAlgos\MaxRectPacker.cs" />
     <Compile Include="Core\ParsedGerber.cs" />
+    <Compile Include="Core\PointDReader.cs" />
     <Compile Include="Core\PolyLineSet.cs" />
     <Compile Include="Core\Primitives\GCodeCommand.cs" />
     <Compile Include="Core\Primitives\GerberApertureMacro.cs" />

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace GerberLibrary.Core
@@ -25,63 +27,41 @@ namespace GerberLibrary.Core
 
         public void Convert(TextReader excellon, TextWriter gcode)
         {
-            string currentLine;
-            int? leadingZeroes = null;
-            int? trailingZeroes = null;
-            while ((currentLine = excellon.ReadLine()) != null && (currentLine != "T01"))
-            {
-                if (currentLine.StartsWith("METRIC,", StringComparison.OrdinalIgnoreCase))
-                {
-                    currentLine = currentLine.Remove(0, "METRIC,".Length);
-                    leadingZeroes = currentLine.IndexOf(".", StringComparison.OrdinalIgnoreCase);
-                    trailingZeroes = currentLine.Length - leadingZeroes - 1;
-                }
-            } //TODO: more sophisticated approach needed: separate NC files! for different tools. See https://gist.github.com/katyo/5692b935abc085b1037e
-
-            if (leadingZeroes == null)
-            {
-                throw new ArgumentException("leading and trailing zeroes not configured");
-            }
-
-            double? ParseCoordinate(string coord)
-            {
-                if (!currentLine.StartsWith(coord, true, CultureInfo.InvariantCulture))
-                {
-                    return null;
-                }
-
-                double result =
-                    int.Parse(currentLine.Substring(1, leadingZeroes.Value + trailingZeroes.Value));
-                for (var i = 0; i < trailingZeroes; i++)
-                {
-                    result /= 10.0;
-                }
-
-                currentLine = currentLine.Remove(0, 1 + leadingZeroes.Value + trailingZeroes.Value);
-                return result;
-            }
-
             using (Start(gcode))
             {
-                while ((currentLine = excellon.ReadLine()) != null && (currentLine != "M30"))
+                double? lastX = null;
+                double? lastY = null;
+                string lastTool = null;
+                foreach (var point in new ExcellonReader(excellon))
                 {
-                    gcode.Write("G1 ");
-                    double? x = ParseCoordinate("X");
-                    if (x != null)
+                    var toolChanged = !string.Equals(lastTool, point.Tool, StringComparison.OrdinalIgnoreCase);
+                    var xChanged = lastX != point.Point.X;
+                    var yChanged = lastY != point.Point.Y;
+                    if (toolChanged)
                     {
-                        gcode.Write($"X{x}");
+                        gcode.WriteLine($"; use tool: {point.Tool}");
+                        lastTool = point.Tool;
                     }
 
-                    double? y = ParseCoordinate("Y");
-                    if (y != null)
+                    if (xChanged || yChanged)
                     {
-                        gcode.Write($"Y{y}");
+                        gcode.Write("G1 ");
+                        if (xChanged)
+                        {
+                            gcode.Write($"X{point.Point.X}");
+                            lastX = point.Point.X;
+                        }
+
+                        if (yChanged)
+                        {
+                            gcode.Write($"Y{point.Point.Y}");
+                            lastY = point.Point.Y;
+                        }
+
+                        gcode.WriteLine();
+                        gcode.WriteLine($"G1 Z{this.config.ZMin} F{this.config.DrillFeed}");
+                        gcode.WriteLine($"G1 Z{this.config.ZMax} F{this.config.MoveFeed}");
                     }
-
-                    gcode.WriteLine();
-
-                    gcode.WriteLine($"G1 Z{this.config.ZMin} F{this.config.DrillFeed}");
-                    gcode.WriteLine($"G1 Z{this.config.ZMax} F{this.config.MoveFeed}");
                 }
             }
         }

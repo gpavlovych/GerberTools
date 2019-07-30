@@ -1607,7 +1607,7 @@ namespace GerberLibrary
                             FinalFiles.Add(Filename);
                             ExcellonFile.MergeAll(a.Value, Filename, Logger);
                             using (var reader = File.OpenText(Filename))
-                            using (var writer = new StreamWriter(Path.Combine(Path.GetDirectoryName(Filename), Path.GetFileNameWithoutExtension(Filename), ".nc")))
+                            using (var writer = File.CreateText(Path.Combine(Path.GetDirectoryName(Filename), Path.GetFileNameWithoutExtension(Filename)+".nc")))
                             {
                                 converter.Convert(reader, writer);
                             }

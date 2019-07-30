@@ -77,6 +77,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GerberToDxf", "..\GerberToD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcellonToGrbl", "..\ExcellonToGrbl\ExcellonToGrbl.csproj", "{37A0DC86-4B49-4E45-8E14-E78271323C01}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcellonTransposer", "ExcellonTransposer\ExcellonTransposer.csproj", "{198516E0-4A9E-499F-B5AC-428EA9692DE5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -333,6 +335,14 @@ Global
 		{37A0DC86-4B49-4E45-8E14-E78271323C01}.Release|Any CPU.Build.0 = Release|Any CPU
 		{37A0DC86-4B49-4E45-8E14-E78271323C01}.Release|x86.ActiveCfg = Release|Any CPU
 		{37A0DC86-4B49-4E45-8E14-E78271323C01}.Release|x86.Build.0 = Release|Any CPU
+		{198516E0-4A9E-499F-B5AC-428EA9692DE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{198516E0-4A9E-499F-B5AC-428EA9692DE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{198516E0-4A9E-499F-B5AC-428EA9692DE5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{198516E0-4A9E-499F-B5AC-428EA9692DE5}.Debug|x86.Build.0 = Debug|Any CPU
+		{198516E0-4A9E-499F-B5AC-428EA9692DE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{198516E0-4A9E-499F-B5AC-428EA9692DE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{198516E0-4A9E-499F-B5AC-428EA9692DE5}.Release|x86.ActiveCfg = Release|Any CPU
+		{198516E0-4A9E-499F-B5AC-428EA9692DE5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -369,6 +379,7 @@ Global
 		{485C42A7-B359-4091-9BE7-7B8E99A8D7EA} = {5B17443F-D48D-429E-83E3-2C7DCA8C6ED3}
 		{843057E6-2FC0-4C78-AAB3-197C60AE72BF} = {F705564A-6956-4675-A941-6ED916ADC0AD}
 		{37A0DC86-4B49-4E45-8E14-E78271323C01} = {F705564A-6956-4675-A941-6ED916ADC0AD}
+		{198516E0-4A9E-499F-B5AC-428EA9692DE5} = {F705564A-6956-4675-A941-6ED916ADC0AD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0EC71E85-7F87-48CE-BAEC-36CE0B0BE263}
